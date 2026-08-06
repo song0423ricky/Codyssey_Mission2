@@ -61,6 +61,16 @@ def add_quiz(quizzes):
 
     print("\n✅ 퀴즈가 추가되었습니다!")
 
+def show_quiz_list(quizzes):
+    if not quizzes:
+        print("\n⚠️ 등록된 퀴즈가 없습니다.")
+        return
+
+    print(f"\n📋 등록된 퀴즈 목록 (총 {len(quizzes)}개)")
+    print("-" * 40)
+    for index, quiz in enumerate(quizzes, start=1):
+        print(f"[{index}] {quiz.question}")
+    print("-" * 40)
 
 def get_text_input(prompt):
     while True:
@@ -176,7 +186,7 @@ def main():
         elif choice == 2:
             add_quiz(quizzes)
         elif choice == 3:
-            print("퀴즈 목록 (아직 구현 전)")
+            show_quiz_list(quizzes)
         elif choice == 4:
             print("점수 확인 (아직 구현 전)")
         elif choice == 5:
