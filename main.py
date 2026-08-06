@@ -1,3 +1,6 @@
+import json
+import os
+
 class Quiz:
     def __init__(self, question, choices, answer):
         self.question = question   # 문제 문자열
@@ -20,6 +23,72 @@ class Quiz:
             "choices": self.choices,
             "answer": self.answer,
         }
+
+
+STATE_FILE = "state.json"
+
+
+class QuizGame:
+    def __init__(self):
+        self.quizzes = []
+        self.best_score = None
+        self.load()   # 객체 생성되자마자 저장된 데이터 불러오기 시도
+
+    def load(self):
+        if not os.path.exists(STATE_FILE):
+            print("📂 저장된 데이터가 없어 기본 퀴즈로 시작합니다.")
+            self.quizzes = get_default_quizzes()
+            self.best_score = None
+            return
+
+        try:
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.quizzes = [
+                Quiz(q["question"], q["choices"], q["answer"])
+                for q in data.get("quizzes", [])
+            ]
+            self.best_score = data.get("best_score")
+            print(f"📂 저장된 데이터를 불러왔습니다. (퀴즈 {len(self.quizzes)}개, 최고점수 {self.best_score}점)")
+        except (json.JSONDecodeError, KeyError, TypeError):
+            print("⚠️ 저장된 파일이 손상되어 기본 데이터로 복구합니다.")
+            self.quizzes = get_default_quizzes()
+            self.best_score = None
+
+    def save(self):
+        data = {
+            "quizzes": [quiz.to_dict() for quiz in self.quizzes],
+            "best_score": self.best_score,
+        }
+        try:
+            with open(STATE_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except OSError:
+            print("⚠️ 저장 중 오류가 발생했습니다.")
+
+    def play(self):
+        score = play_quiz(self.quizzes)
+        if score is not None:
+            if self.best_score is None or score > self.best_score:
+                self.best_score = score
+                print("🎉 새로운 최고 점수입니다!")
+            self.save()
+
+    def add(self):
+        add_quiz(self.quizzes)
+        self.save()
+
+    def show_list(self):
+        show_quiz_list(self.quizzes)
+
+    def show_score(self):
+        show_best_score(self.best_score, len(self.quizzes))
+
+
+
+
+
+    
 
 def play_quiz(quizzes):
     if not quizzes:
@@ -182,26 +251,20 @@ def get_menu_choice():
 
 
 def main():
-    quizzes = get_default_quizzes()
-    best_score = None   # 아직 한 번도 안 풀었으면 None
+    game = QuizGame()
 
     while True:
         print_menu()
         choice = get_menu_choice()
 
         if choice == 1:
-            score = play_quiz(quizzes)
-            if score is not None:
-                if best_score is None or score > best_score:
-                    best_score = score
-                    print("🎉 새로운 최고 점수입니다!")
-           
+            game.play()
         elif choice == 2:
-            add_quiz(quizzes)
+            game.add()
         elif choice == 3:
-            show_quiz_list(quizzes)
+            game.show_list()
         elif choice == 4:
-            show_best_score(best_score, len(quizzes))
+            game.show_score()
         elif choice == 5:
             print("프로그램을 종료합니다.")
             break
