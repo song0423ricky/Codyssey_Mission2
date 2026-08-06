@@ -21,12 +21,59 @@ class Quiz:
             "answer": self.answer,
         }
 
+def play_quiz(quizzes):
+    if not quizzes:
+        print("\n⚠️ 등록된 퀴즈가 없습니다.")
+        return None
+
+    print(f"\n📝 퀴즈를 시작합니다! (총 {len(quizzes)}문제)")
+    correct_count = 0
+
+    for index, quiz in enumerate(quizzes, start=1):
+        quiz.show(index)
+        answer = get_answer_input()
+        if quiz.is_correct(answer):
+            print("✅ 정답입니다!")
+            correct_count += 1
+        else:
+            print(f"❌ 오답입니다. (정답: {quiz.answer}번)")
+
+    score = int(correct_count / len(quizzes) * 100)
+    print("\n" + "=" * 40)
+    print(f"🏆 결과: {len(quizzes)}문제 중 {correct_count}문제 정답! ({score}점)")
+    print("=" * 40)
+    return score
+
+
+def get_answer_input():
+    while True:
+        try:
+            raw = input("정답 입력: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\n프로그램을 종료합니다.")
+            exit()
+
+        if raw == "":
+            print("⚠️ 입력이 비어 있습니다. 숫자를 입력하세요.")
+            continue
+
+        if not raw.isdigit():
+            print("⚠️ 잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+            continue
+
+        answer = int(raw)
+        if answer < 1 or answer > 4:
+            print("⚠️ 잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+            continue
+
+        return answer
+
 def get_default_quizzes():
     return [
         Quiz(
             "마블 시네마틱 유니버스에서 타노스가 모은 인피니티 스톤의 개수는?",
             ["4개", "5개", "6개", "7개"],
-            2
+            3
         ),
         Quiz(
             "영화 '기생충'의 감독은?",
@@ -88,14 +135,13 @@ def get_menu_choice():
 
 def main():
     quizzes = get_default_quizzes()
-    quizzes[0].show(1)   # 첫 번째 문제 출력 테스트
-    
+
     while True:
         print_menu()
         choice = get_menu_choice()
 
         if choice == 1:
-            print("퀴즈 풀기 (아직 구현 전)")
+            play_quiz(quizzes)    
         elif choice == 2:
             print("퀴즈 추가 (아직 구현 전)")
         elif choice == 3:
